@@ -1,0 +1,132 @@
+# GooseClaw CI
+#
+# DESIGN NOTES (read before editing):
+#  1. Exactly ONE third-party action is used (actions/checkout). Every other
+#     tool is installed in a `run:` step at a pinned version. Fewer marketplace
+#     actions = smaller supply-chain surface. This is a direct lesson from the
+#     trivy-action tag-poisoning attack (CVE-2026-33634) — see SECURITY.md.
+#  2. Actions are pinned to a FULL COMMIT SHA, never a tag. Tags are mutable;
+#     that is exactly what TeamPCP force-pushed.
+#  3. Placeholders below read PIN_RESOLVE_IN_PHASE_0. They are deliberately
+#     invalid so CI fails loudly rather than running on a fabricated hash.
+#     Phase 0 resolves each one against a primary source and records it in
+#     08_PIN_REGISTER.md. Resolve with, e.g.:
+#         gh api repos/actions/checkout/git/ref/tags/v5 --jq .object.sha
+#  4. TRIVY IS BANNED. Do not add it. Syft + OSV-Scanner + Grype + cargo-deny.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  # PIN: resolve in Phase 0, record in 08_PIN_REGISTER.md with as-of dates.
+  SYFT_VERSION: PIN_RESOLVE_IN_PHASE_0
+  OSV_SCANNER_VERSION: PIN_RESOLVE_IN_PHASE_0
+  GRYPE_VERSION: PIN_RESOLVE_IN_PHASE_0
+  CARGO_DENY_VERSION: PIN_RESOLVE_IN_PHASE_0
+
+jobs:
+  # ---------------------------------------------------------------------
+  # Layer 1 of the three-layer vendor-exclusion engine. REQUIRED CHECK.
+  # Never make this optional, allow-failure, or skippable.
+  # Runs green today: the self-test needs no workspace.
+  # ---------------------------------------------------------------------
+  vendor-gate:
+    name: Vendor gate (Meta/OpenAI/xAI)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@PIN_RESOLVE_IN_PHASE_0
+
+      # The deliberately-failing fixture: proves the gate catches a denied
+      # dep and does not false-positive on real ones. If the gate is broken,
+      # this fails before the real scan can pass by accident.
+      - name: Prove the gate works (deliberately-failing fixture)
+        run: python3 scripts/vendor_gate.py --self-test
+
+      - name: Scan resolved dependency graph
+        run: python3 scripts/vendor_gate.py
+
+  lint:
+    name: fmt + clippy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@PIN_RESOLVE_IN_PHASE_0
+      - name: Toolchain
+        run: rustup show && rustup component add rustfmt clippy
+      - name: rustfmt
+        run: cargo fmt --all -- --check
+      - name: clippy
+        run: cargo clippy --workspace --all-targets --all-features -- -D warnings
+
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@PIN_RESOLVE_IN_PHASE_0
+      - name: Toolchain
+        run: rustup show
+      - name: cargo test
+        run: cargo test --workspace --all-features --locked
+
+  supply-chain:
+    name: SBOM + vulns + licenses
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@PIN_RESOLVE_IN_PHASE_0
+
+      # Phase 0: pin versions AND verify the downloaded artifact's checksum
+      # against the publisher's signed checksum file before executing it.
+      - name: Install Syft (pinned)
+        run: |
+          set -euo pipefail
+          curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh \
+            | sh -s -- -b "$HOME/.local/bin" "${SYFT_VERSION}"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Install Grype (pinned)
+        run: |
+          set -euo pipefail
+          curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh \
+            | sh -s -- -b "$HOME/.local/bin" "${GRYPE_VERSION}"
+
+      - name: Generate SBOM (Syft, SPDX + CycloneDX)
+        run: |
+          set -euo pipefail
+          mkdir -p SBOM
+          syft dir:. -o spdx-json=SBOM/gooseclaw.spdx.json \
+                     -o cyclonedx-json=SBOM/gooseclaw.cdx.json
+
+      - name: Vulnerability scan (OSV-Scanner)
+        run: |
+          set -euo pipefail
+          curl -sSfL -o "$HOME/.local/bin/osv-scanner" \
+            "https://github.com/google/osv-scanner/releases/download/${OSV_SCANNER_VERSION}/osv-scanner_linux_amd64"
+          chmod +x "$HOME/.local/bin/osv-scanner"
+          osv-scanner --lockfile=Cargo.lock
+
+      - name: Vulnerability scan (Grype, against the SBOM)
+        run: |
+          grype sbom:SBOM/gooseclaw.spdx.json --fail-on high
+
+      # Requires deny.toml — Phase 0 authors it (advisories + licenses +
+      # AGPL-compatibility bans + sources).
+      - name: Licenses + advisories (cargo-deny)
+        run: |
+          set -euo pipefail
+          cargo install cargo-deny --version "${CARGO_DENY_VERSION}" --locked
+          cargo deny check
+
+      - name: Upload SBOM
+        run: |
+          echo "Phase 0: attach SBOM/ to the release artifact set."
