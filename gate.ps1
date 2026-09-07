@@ -9,7 +9,7 @@ param([switch]$SelfTest)
 
 $ErrorActionPreference = 'Stop'
 $Root = $PSScriptRoot
-$Spec = Join-Path $Root '..\specification.md'   # assembled canon - deliberately NOT committed
+$Spec = Join-Path $Root 'specification.md'   # assembled canon - committed at repo root (homecoming 2026-09-07)
 $ClaudeMd = Join-Path $Root 'CLAUDE.md'
 $Ci = Join-Path $Root 'ci.yml'
 $VendorGate = Join-Path $Root 'vendor_gate.py'
@@ -41,7 +41,7 @@ $script:Checks = [ordered]@{
         $c = Read-Text $Spec
         $need = @('fiduciary agent runtime', 'AGPL-3.0-or-later')
         $h = Count-Hits $c $need
-        New-Result ($h -eq $need.Count) ("$h/" + $need.Count + ' tokens in ..\specification.md (canon, uncommitted)')
+        New-Result ($h -eq $need.Count) ("$h/" + $need.Count + ' tokens in specification.md (canon, committed at repo root)')
     }
 
     'Seed gate files (94f0658)' = {
