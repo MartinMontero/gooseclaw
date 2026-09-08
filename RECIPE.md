@@ -7,14 +7,15 @@ touched, in dependency order, with proof lines carried forward.
 Proof rules: every proof is a checkable criterion ending in a number, a filename, or a named
 output — never a status message. `gate.ps1` runs every proof line below.
 
-**Canon location:** the assembled canon is `specification.md` in the repo's **parent
-directory** (`..\specification.md`). It is deliberately **never committed** — it is the
-ratification-draft register of rulings, not a repo artifact. There is no `DECISIONS.md`;
+**Canon location:** the assembled canon is `specification.md` at the **repo root** —
+**committed** since the homecoming PR (2026-09-07, ratified by Martin incl. the §3.2
+dual-era MCP constraint). The pre-homecoming parent-directory copy (`..\specification.md`)
+is superseded; `gate.ps1` reads the committed copy. There is no `DECISIONS.md`;
 proofs target the canon directly.
 
 | Subsystem | Needs | Proof |
 |---|---|---|
-| Foundation spec (assembled canon) | — | `..\specification.md` exists and contains `fiduciary agent runtime` and `AGPL-3.0-or-later` — 2/2 |
+| Foundation spec (assembled canon) | — | `specification.md` (repo root, committed) exists and contains `fiduciary agent runtime` and `AGPL-3.0-or-later` — 2/2 |
 | Seed gate files (94f0658) | Foundation spec (assembled canon) | `CLAUDE.md`, `ci.yml`, `vendor_gate.py` exist; CLAUDE.md contains `TIER 1` — 4/4 |
 | Seven-crate design (spec) | Seed gate files (94f0658) | CLAUDE.md names all seven crates (`gooseclaw`, `-channels`, `-skills`, `-nostr`, `-knowledge`, `-payments`, `-safety`) — 7/7 |
 | Rule-9 gate (core-owned) | Seven-crate design (spec) | CLAUDE.md contains `Rule 9` and `go-ahead`; canon §4.1 contains `core-owned` and `one enforcement point` — 4/4 |

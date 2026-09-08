@@ -7,7 +7,7 @@ Nostr-native, always-on **fiduciary** agent runtime. Drives goose over **ACP**; 
 - **Read `RECIPE.md` before any work.** It is the persistent dependency graph of this project: every subsystem, what it needs, and the proof that it works.
 - **A session's plan is a subset of `RECIPE.md`** — the subsystems being touched, in dependency order, with their proof lines carried forward. If the plan touches a subsystem, it inherits that subsystem's proof.
 - **Session audit/plan docs live in `docs/audit/<date>-<session>/`, never at the repo root.**
-- **Rulings live in the canon (`specification.md`), never in a second register** — there is no `DECISIONS.md`. The canon is deliberately not committed; `gate.ps1` reads it from the repo's parent directory.
+- **Rulings live in the canon (`specification.md`), never in a second register** — there is no `DECISIONS.md`. The canon is **committed at the repo root** since the homecoming PR (2026-09-07); `gate.ps1` reads the committed copy. The pre-homecoming parent-directory copy is superseded.
 - **Run `powershell -File gate.ps1` before claiming done.** This is the definition-of-done gate and is **separate from the build/vendor gates** (`ci.yml`, `vendor_gate.py`). All must pass; one does not substitute for another.
 - **DRIFT RULE:** any PR that touches a subsystem re-verifies its proof line. A drifted proof is flagged in the PR body — never silently edited. A proof that cannot run (missing artifact, missing tool) is a FAIL, not a skip.
 
