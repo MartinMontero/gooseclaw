@@ -14,7 +14,7 @@ and CLAUDE.md, specification.md wins; flag the conflict, stop, and surface it �
 resolve silently.
 
 Known supersessions as of 2026-09-03 (flagged, canon text NOT edited):
-- `09_OPEN_DECISIONS.md` lists Skillsmith scope + channel priority as OPEN.
+- `09_OPEN_DECISIONS.md` listed Skillsmith scope + channel priority as OPEN — **resolved in-file 2026-09-08** (ruling 2): both items now record the D0901 rulings verbatim, recommendations kept as superseded.
   Martin DECIDED both 2026-09-01: Skillsmith IN for v1 (external-only ELv2 posture,
   npx-spawned, NOTICE attribution, no BuilderOS-hosted registry without smith-horn's
   written permission); channels Nostr → Signal → White Noise (marmot-protocol/mdk,
