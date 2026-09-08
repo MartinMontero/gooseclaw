@@ -1,0 +1,49 @@
+# 18 — Glossary
+
+Definitions for every term, protocol, and concept in the GooseClaw knowledge base, so a fresh collaborator or assistant needs no external lookup.
+
+## Core project
+- **GooseClaw** — a Nostr-native, always-on *fiduciary* agent runtime that drives goose over ACP, federates with Alfred over MCP, and reuses IronClaw's security designs. The "Body & Judgment" of the Builder OS triad.
+- **Fiduciary steward** — the design stance: an agent with no interests of its own that extends the user's capability and never displaces the user's authority. Contrast: an autonomous agent.
+- **Observe → Draft → Surface → Execute** — GooseClaw's action loop. It halts at *Execute* to await explicit human consent for anything consequential.
+- **Rule 9** — "consent before consequence." No write/send/spend/commit/push/destructive action without explicit human go-ahead; proactivity may only draft-and-surface. Enforced deterministically (a CI/hook deny), not by advice.
+- **Lethal trifecta** — the exploitable combination of (1) access to private data, (2) exposure to untrusted content, and (3) an exfiltration channel. GooseClaw breaks it by gating leg 2 (inbound allowlist) and leg 3 (no auto-outbound with private data).
+
+## The triad and org
+- **Alfred** — the memory system-of-record; a local-first Nostr-native PKM exposing a path-confined MCP vault. GooseClaw federates with it; never runs inside it.
+- **Holmes** — the research/detective brain of the WCJBT triad (evidence, confidence scoring, zero-hallucination).
+- **WCJBT (wecanjustbuildthings.dev)** — the catalog/architect; source of the vendor-exclusion CI pattern.
+- **Builder OS triad** — WCJBT (Architect) + Holmes (Detective) + Alfred (Memory) + goose (Hands) + GooseClaw (Body & Judgment).
+- **AOS (And Other Stuff)** — the freedom-tech collective Martin operates through; GooseClaw's organizational home.
+
+## Engines & protocols
+- **goose** — Block/AAIF's open-source AI agent (Apache-2.0); GooseClaw's capability engine ("the Hands"). Driven over ACP.
+- **ACP (Agent Client Protocol)** — a Zed-created open JSON-RPC-over-stdio standard for editor/client ↔ agent communication. GooseClaw's stable engine seam. Wire version 1.
+- **MCP (Model Context Protocol)** — Anthropic's open standard for tool/context servers. The Alfred federation seam. Current stable 2025-11-25.
+- **IronClaw** — `nearai/ironclaw`, an "Agent OS" (Rust, MIT OR Apache-2.0). Source of GooseClaw's *stolen* security designs (safety pipeline, Wasmtime sandbox) — by attribution, not fork.
+- **NIP (Nostr Improvement Possibility)** — a Nostr protocol spec. See `13_NIP_COMPLIANCE_MATRIX.md` for the ones GooseClaw uses.
+- **NIP-46 bunker** — a remote signer holding the `nsec` on separate hardware; the always-on host never holds the raw key. Fail-closed if offline.
+- **DVM (Data Vending Machine)** — a NIP-90 request/result marketplace for data processing on Nostr. Capability-exposure option only (weak demand).
+
+## Payments
+- **Lightning** — Bitcoin's layer-2 payment network. Approval-gated + capped in GooseClaw.
+- **Cashu** — a Chaumian eCash protocol; **CDK** is its Rust implementation. **NUT-11** = P2PK (pay-to-public-key) spending conditions.
+- **Zap / Nutzap** — Nostr-native Lightning tip (NIP-57) / Cashu-over-Nostr payment (NIP-61).
+
+## Build & runtime
+- **Wasmtime component model** — the sandbox runtime for untrusted community skills (deny-by-default capabilities + resource limiter). **WIT world** = the typed interface (ABI) skills implement.
+- **Trust tiers (Trusted / Installed)** — Trusted = user-placed skills with full tool access; Installed = registry/external skills, read-only by default.
+- **Capability lease** — a time- and scope-bounded grant of a capability to a skill (adopted from IronClaw v2).
+- **RRF (Reciprocal Rank Fusion)** — the formula fusing full-text (FTS5) and vector search rankings for hybrid retrieval.
+- **libSQL** — an embedded, single-file SQLite fork with FTS5 + native vector (DiskANN). GooseClaw's persistence (no server).
+- **Skillsmith** — an optional, self-hosted MCP skill-discovery server (Elastic-2.0; kept optional).
+- **Zapstore** — a Nostr-native app store; GooseClaw's distribution channel.
+- **Born-redacted telemetry** — logging designed so sensitive values are never captured in the first place (inherited from Alfred). Distinct from "zero telemetry" = no network phone-home.
+
+## Method & supply chain
+- **RPI** — Research → Plan → Implement, Martin's standing workflow.
+- **Spec Kit** — GitHub's spec-driven-development flow (constitution → specification → plan → tasks).
+- **Vendor denylist** — the enforced exclusion of Meta/OpenAI/xAI as dependencies and model providers (Google/Mistral/Ollama/MiniMax/Anthropic permitted).
+- **Syft / OSV-Scanner / Grype / cargo-deny** — the supply-chain toolchain (SBOM / vuln scan / vuln scan / license+advisory gate). **Trivy is banned** (CVE-2026-33634).
+- **SBOM** — Software Bill of Materials (generated by Syft).
+- **Two-surface discipline** — claude.ai projects for strategy/QA/authoring (this workspace); Claude Code Desktop for execution against the repo.
