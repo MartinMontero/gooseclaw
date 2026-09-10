@@ -29,3 +29,9 @@ The decision system-of-record. Reconstructs and supersedes the original `07_DECI
 ## Still open (need ratification — see `09_OPEN_DECISIONS.md`)
 - **Skillsmith in scope for v1?** (optional self-hosted MCP discovery; Elastic-2.0 license caveat).
 - **Channel priority beyond Nostr?** (recommendation: Signal next).
+
+## Post-spine closures
+
+| Item | Decision |
+|---|---|
+| **O2 — MCP-vault contract re-validation** (MCP spec 2026-07-28 / MCP-over-ACP assumptions, before Phase 2) | **[resolved]** **CLOSED 2026-09-09 by Martin's ruling**, on the evidence of the **2026-09-07 Choice-B probe** (`docs/audit/2026-09-07-mcp-acp-revalidation/REPORT.md`): goose 1.48.0 driven over ACP v1 in forced Approve mode federated with a dual-era MCP vault server — `tools/list`, vault read, vault write with sole-writer optimistic concurrency (stale write CONFLICT, human-edit-wins), every call gated by `session/request_permission`; a strict modern-only 2026-07-28 server BREAKS at `initialize` (goose's MCP client is legacy-era, spec `basic/versioning.mdx` matrix Legacy→Modern = Fails). The **dual-era Alfred MCP constraint is ratified in §3.2**. Residuals are **standing duties, not open items**: re-check MCP era on every goose bump; sidecar pin 1.43.0 ≠ probed 1.48.0 (flag, re-verify before Phase 2); HTTP/WS transports and mid-session `/mode` adversarial test remain unverified. |
