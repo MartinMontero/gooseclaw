@@ -126,6 +126,7 @@ jobs:
           grep "osv-scanner_linux_amd64" osv-scanner_SHA256SUMS | sha256sum --check --strict
           install -m 0755 osv-scanner_linux_amd64 "$HOME/.local/bin/osv-scanner"
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          cd "$GITHUB_WORKSPACE"   # install ran in /tmp/osv-dl; the lockfile is here
           osv-scanner --lockfile=Cargo.lock
 
       - name: Vulnerability scan (Grype, against the SBOM)
