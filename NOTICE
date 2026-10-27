@@ -1,0 +1,24 @@
+GooseClaw
+Copyright (c) 2026 Martin Montero and contributors
+License: AGPL-3.0-or-later (see LICENSE)
+
+Third-party design provenance
+=============================
+
+The safety-pipeline DESIGN (trait seams InjectionScanner::scan_injection /
+LeakScanner::scan_leaks, policy-engine shape, redaction approach) and the
+sandbox/capability-lease designs in crates/gooseclaw-safety and
+crates/gooseclaw-skills are DERIVED from study of:
+
+    IronClaw — https://github.com/nearai/ironclaw
+    License: MIT OR Apache-2.0
+    Studied at commit b011eb3932a0e1ab8bbe833893599ca9ae4925c5 (tag ironclaw-v1.4.1, 2026-09-29)
+    (sparse, read-only checkout under reference/ironclaw — not distributed)
+
+No IronClaw source files are vendored as of Phase 1 (2026-10-27). Any future
+vendoring (planned Phase 5) requires attribution headers, a supply-chain scan,
+and explicit human go-ahead, per CLAUDE.md Tier 2.
+
+GooseClaw drives Block's goose agent (https://github.com/block/goose,
+Apache-2.0) over the Agent Client Protocol as a supervised subprocess; no
+goose code is vendored.

@@ -1,0 +1,12 @@
+[package]
+name = "gooseclaw-payments"
+description = "Lightning + Cashu P2PK + NIP-57/61 payments. Per-spend approval with caps; CALLS the core gate, never self-approves."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+gooseclaw.workspace = true
+

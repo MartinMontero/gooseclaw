@@ -16,7 +16,7 @@ proofs target the canon directly.
 | Subsystem | Needs | Proof |
 |---|---|---|
 | Foundation spec (assembled canon) | — | `specification.md` (repo root, committed) exists and contains `fiduciary agent runtime` and `AGPL-3.0-or-later` — 2/2 |
-| Seed gate files (94f0658) | Foundation spec (assembled canon) | `CLAUDE.md`, `ci.yml`, `vendor_gate.py` exist; CLAUDE.md contains `TIER 1` — 4/4 |
+| Seed gate files (94f0658) | Foundation spec (assembled canon) | `CLAUDE.md`, `.github/workflows/ci.yml`, `scripts/vendor_gate.py` exist; CLAUDE.md contains `TIER 1` — 4/4 |
 | Seven-crate design (spec) | Seed gate files (94f0658) | CLAUDE.md names all seven crates (`gooseclaw`, `-channels`, `-skills`, `-nostr`, `-knowledge`, `-payments`, `-safety`) — 7/7 |
 | Rule-9 gate (core-owned) | Seven-crate design (spec) | CLAUDE.md contains `Rule 9` and `go-ahead`; canon §4.1 contains `core-owned` and `one enforcement point` — 4/4 |
 | ACP contract (Approve mode, protocolVersion 1) | Rule-9 gate (core-owned) | canon §3.1 contains `protocolVersion = 1` and `Approve` — 2/2 |
@@ -26,7 +26,7 @@ proofs target the canon directly.
 | Channel priority (RULED 2026-09-01) | Nostr channel layer | canon §7.2(b) contains `Signal`, `White Noise`, `marmot-protocol/mdk` — 3/3 |
 | Payments (CDK/Lightning) | Nostr channel layer | canon contains `Cashu`, `P2PK`, `NIP-57` — 3/3 |
 | Skillsmith scope (RULED 2026-09-01) | Seven-crate design (spec) | canon §7.2(a) contains `Skillsmith`, `ELv2`, `2026-09-01` — 3/3 |
-| Vendor denylist enforcement (Meta/OpenAI/xAI) | Seed gate files (94f0658) | `python vendor_gate.py --self-test` exits 0; ci.yml wires `--self-test`; vendor_gate.py `EXCEPTIONS` map empty; ci.yml carries exactly 9 `PIN_RESOLVE_IN_PHASE_0` placeholders — 4/4 |
+| Vendor denylist enforcement (Meta/OpenAI/xAI) | Seed gate files (94f0658) | `python scripts/vendor_gate.py --self-test` exits 0; ci.yml wires `--self-test`; vendor_gate.py `EXCEPTIONS` map empty; ci.yml carries 0 `PIN_RESOLVE_IN_PHASE_0` placeholders and pins actions/checkout to full SHA `3d3c42e5...` — 4/4 |
 | Graph-engineering convention | Foundation spec (assembled canon) | `RECIPE.md` and `gate.ps1` exist; CLAUDE.md contains `Project graph`; `docs/audit/` exists — 4/4 |
 
 ## Parallel tracks
@@ -52,3 +52,17 @@ FAIL, not a skip.
 When a real build gate lands (Phase 0: `cargo check`, `cargo test`, clippy), proof lines
 **call it** rather than re-implementing it — the same way the vendor-denylist proof already
 delegates to `vendor_gate.py --self-test` instead of duplicating the matcher.
+
+## Proof-line change log (DRIFT RULE)
+
+**2026-10-27 — Phase 1 session (changes approved by the operator):**
+
+1. Seed gate files proof. OLD: "CLAUDE.md, ci.yml, vendor_gate.py exist" (repo root).
+   NEW: "CLAUDE.md, .github/workflows/ci.yml, scripts/vendor_gate.py exist".
+   WHY: operator-approved move of CI files into canonical locations.
+2. Vendor denylist enforcement proof. OLD: "ci.yml carries exactly 9
+   PIN_RESOLVE_IN_PHASE_0 placeholders". NEW: "ci.yml carries 0 placeholders and pins
+   actions/checkout to full SHA 3d3c42e5aac5ba805825da76410c181273ba90b1 (v7.0.1)".
+   WHY: Phase-0 pin-resolution duty executed; placeholders were designed to be resolved.
+   Resolutions recorded in docs/pin-register/08_PIN_REGISTER-2026-10-27.md.
+3. gate.ps1 check implementations updated to match both new proof lines.

@@ -348,3 +348,45 @@ The pin register is the volatile-facts system-of-record: **`08_PIN_REGISTER.md`*
 | 12 | First milestone = ACP supervisor + Rule-9 gate ONLY (no channels/payments/Nostr publishing) | ✅ | §8 |
 | 13 | The two 2026-09-01 decisions (Skillsmith IN for v1 external-only ELv2 + tripwire; Nostr → Signal → White Noise via mdk) | ✅ | §7.2 |
 | 14 | All ten QA amendments reflected | ✅ | §7.3 (traceability table) |
+
+---
+
+## Appendix C — Amendments register (2026-10-27, Phase 1 session)
+
+The three Critical security amendments below re-ratify constitution articles 11-13 as
+implementation binding for the Phase 1 scaffold. Recorded per the DRIFT RULE with old text,
+new text, rationale, and approval. **Approved by the operator (Martin) 2026-10-27** in the
+Phase 1 plan checkpoint.
+
+### Amendment 1 — Inbound sender allowlist (channels)
+- **Old text (kickoff spec):** channels accept and process inbound messages; rendering of the
+  approval UX implied channels participate in decisions.
+- **New text:** the inbound sender allowlist is enforced in gooseclaw-channels BEFORE parsing;
+  unknown senders are dropped with no tool exposure and no vault reads; inbound message text is
+  untrusted data, never instructions.
+- **Why:** Nostr DMs are attacker-controlled input; the allowlist is the first structural choke
+  point (classifiers assumed bypassable).
+- **Proof:** crates/gooseclaw-channels — unknown_senders_are_dropped_before_processing;
+  admitted_text_is_sanitized.
+
+### Amendment 2 — Single core-owned Rule-9 gate
+- **Old text (kickoff spec):** channels and payments render the approve/deny UX (decision
+  ownership left implicit).
+- **New text:** exactly one Rule-9 gate, owned by the gooseclaw core crate. Channels and
+  payments CALL it via the GateCaller seam; they can never mint, cache, or override a decision.
+  PendingAction has no public constructor and is unforgeable outside core.
+- **Why:** two gates are two bypass targets; mirrors IronClaw's host_api decision/dispatch/audit
+  split (verified live at pin b011eb39).
+- **Proof:** crates/gooseclaw/src/gate.rs — decision_cannot_be_forged_outside_gate;
+  gooseclaw-channels — channel_cannot_mint_a_decision_without_the_gate.
+
+### Amendment 3 — Authenticated approvals
+- **Old text (kickoff spec):** the human approves via a reaction-style UX gesture.
+- **New text:** approvals are ed25519-signed by an allowlisted pubkey over
+  action_hash || nonce || expiry; single-use (nonce burned on decision); expired, replayed,
+  unknown-signer, or tampered-hash approvals are rejected; every decision is written to the
+  local audit log.
+- **Why:** reaction-style approvals are spoofable and replayable; unauthenticated approval is
+  a confused deputy.
+- **Proof:** crates/gooseclaw/src/gate.rs — happy_path_single_use, unknown_signer_rejected,
+  tampered_action_hash_breaks_signature, expired_approval_rejected.

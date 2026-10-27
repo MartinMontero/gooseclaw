@@ -43,3 +43,48 @@ New this refresh: every checkable row is now machine-checkable — `scripts/pin_
 - goose permission-mode hard-lock caveat (docs surface, not re-verified).
 - Skillsmith license text (GitHub detection: NOASSERTION; Elastic-2.0 is not SPDX-detectable, so this may be detection, not change).
 - NIP-61 implementation status in nostrdevkit/nostr (not re-checked).
+---
+
+## Phase-0 session resolutions (this branch, 2026-10-27)
+
+The sweep above re-verified the register; the Phase-0/1 session additionally RESOLVED the
+CI placeholders and pinned the ACP client crate. All entries verified against primary
+sources on 2026-10-27.
+
+### CI pins (replace the 9 PIN_RESOLVE_IN_PHASE_0 placeholders in .github/workflows/ci.yml)
+
+| Pin | Value | Source | As-of |
+|---|---|---|---|
+| actions/checkout | commit 3d3c42e5aac5ba805825da76410c181273ba90b1 (v7.0.1; refs/tags/v7 dereferences to the same commit) | api.github.com/repos/actions/checkout/git/ref/tags/v7 | 2026-10-27 |
+| Syft | v1.55.0 (2026-10-19); checksums.txt + sigstore verified present | github.com/anchore/syft/releases | 2026-10-27 |
+| Grype | v0.121.0 (2026-10-19); checksums.txt + sigstore verified present | github.com/anchore/grype/releases | 2026-10-27 |
+| OSV-Scanner | v2.7.0 (2026-10-12); osv-scanner_SHA256SUMS verified present | github.com/google/osv-scanner/releases | 2026-10-27 |
+| cargo-deny | 0.20.2 (2026-07-09); installed from source, --locked | github.com/EmbarkStudios/cargo-deny/releases | 2026-10-27 |
+
+### Phase-1 toolchain pins (EXECUTED in the scaffold)
+
+| Pin | Value | Source | As-of |
+|---|---|---|---|
+| goose (installed/used by spike) | 1.48.0 | goose --version (local) | 2026-10-27 |
+| agent-client-protocol | **=2.0.0** (matches goose 1.48.0 Cargo.lock); wire protocolVersion = 1 (ProtocolVersion::V1) VERIFIED in crate 2.0.0 source (src/role/acp.rs) AND EXECUTED live in the ACP spike (initialize/response both protocolVersion 1). Resolves watch-list item 2 for the 2.0.0 pin; 3.x wire remains UNVERIFIED and unused | crates.io; block/goose Cargo.lock @ v1.48.0; docs/audit/2026-10-27-phase1-acp-spike/ | 2026-10-27 |
+| goose ACP entry point / Approve | VERIFIED LIVE this session: goose acp (stdio, no mode flag); GOOSE_MODE env (auto/approve/chat/smart_approve, default auto) — resolves the sweep's UNVERIFIED row | goose --help 1.48.0; block/goose documentation/docs/guides/config-files.md @ v1.48.0 | 2026-10-27 |
+| IronClaw (study pin) | b011eb3932a0e1ab8bbe833893599ca9ae4925c5 = tag ironclaw-v1.4.1 (2026-09-29); MIT OR Apache-2.0; sparse study-clone at reference/ironclaw (gitignored) | github.com/nearai/ironclaw | 2026-10-27 |
+| IronClaw layout (steals re-derivation, item 5 — DONE for the study set) | ~74 library crates at pin (80 Cargo.tomls incl. wasm-src/fuzz); grouped dirs (substrates/, domains/, kernel/, contracts/, lanes/, app/, events/, extensions/, loop/, product/); ironclaw_wasm_limiter EXISTS; wasm_sandbox_core is a MODULE inside ironclaw_wasm (not a crate); ironclaw_wasm_sandbox_core and ironclaw_embeddings ABSENT; InjectionScanner/LeakScanner confirmed at crates/substrates/ironclaw_safety/src/lib.rs:67-80 | git tree @ pin; sparse checkout | 2026-10-27 |
+
+### Reconciliation note
+
+The kickoff prompt claimed IronClaw main pins wasmtime 43.0.2; the sweep verified
+**47.0.4** in main's Cargo.toml. The sweep value stands (kickoff claim superseded).
+The kickoff's "~27 crates" and "ironclaw_wasm_limiter does not exist" were both wrong —
+see the layout row above.
+
+### Drift flags raised by the Phase-0/1 session (recorded, none silently fixed)
+
+1. Kickoff prompt said goose v1.41.0/v1.39.0 — installed 1.48.0; upstream v1.56.0.
+2. Kickoff pinned agent-client-protocol 1.0.0 — SUPERSEDED by =2.0.0 (goose lock match).
+3. Kickoff called MCP 2026-07-28 an RC — it is the latest FULL release (sweep confirms).
+4. Kickoff said wasmtime upstream 45.x — actual v50.0.0 (sweep confirms).
+5. Kickoff IronClaw provenance wrong in both directions — see layout row.
+6. "goose 2.0 built behind ACP" — UNVERIFIED (no primary source; treat as aspiration).
+7. NEW: goose 1.48.0 ACP advertises loadSession: true — canon 3.1 says no resume/fork
+   upstream; re-verify before relying on either claim.
