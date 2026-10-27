@@ -14,8 +14,8 @@ rust-version = "1.85"
 
 [workspace.dependencies]
 # Intra-workspace
-gooseclaw = { path = "crates/gooseclaw" }
-gooseclaw-safety = { path = "crates/gooseclaw-safety" }
+gooseclaw = { path = "crates/gooseclaw", version = "0.1.0" }
+gooseclaw-safety = { path = "crates/gooseclaw-safety", version = "0.1.0" }
 
 # ACP client: pinned to match the installed goose 1.48.0 (its Cargo.lock @ v1.48.0
 # pins agent-client-protocol 2.0.0). Wire protocol: protocolVersion = 1 (ProtocolVersion::V1).
