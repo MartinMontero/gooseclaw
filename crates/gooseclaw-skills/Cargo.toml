@@ -1,0 +1,11 @@
+[package]
+name = "gooseclaw-skills"
+description = "Wasmtime component-model skill sandbox with trust tiers and a defined WIT world. Phase 1: traits + types only (no wasmtime dep yet)."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+

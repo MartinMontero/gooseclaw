@@ -1,0 +1,13 @@
+[package]
+name = "gooseclaw-channels"
+description = "Channel adapters (Nostr/NIP-17 first). Renders the approve/deny UX but CALLS the core gate. Enforces the inbound sender allowlist."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+gooseclaw.workspace = true
+gooseclaw-safety.workspace = true
+

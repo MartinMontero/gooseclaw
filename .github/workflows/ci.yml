@@ -1,0 +1,145 @@
+# GooseClaw CI
+#
+# DESIGN NOTES (read before editing):
+#  1. Exactly ONE third-party action is used (actions/checkout). Every other
+#     tool is installed in a run: step at a pinned version. Fewer marketplace
+#     actions = smaller supply-chain surface. This is a direct lesson from the
+#     trivy-action tag-poisoning attack (CVE-2026-33634) — see SECURITY.md.
+#  2. Actions are pinned to a FULL COMMIT SHA, never a tag. Tags are mutable;
+#     that is exactly what TeamPCP force-pushed.
+#  3. Pins RESOLVED in Phase 0 (2026-10-27), recorded in
+#     docs/pin-register/08_PIN_REGISTER-2026-10-27.md with source URLs and
+#     as-of dates. actions/checkout: refs/tags/v7 -> 3d3c42e5... (v7.0.1).
+#  4. TRIVY IS BANNED. Do not add it. Syft + OSV-Scanner + Grype + cargo-deny.
+#  5. Every downloaded binary is checksum-verified against the publisher's
+#     signed checksum file BEFORE it is executed.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  # Pinned 2026-10-27 against release pages; see docs/pin-register/.
+  SYFT_VERSION: v1.55.0          # anchore/syft releases (2026-10-19)
+  OSV_SCANNER_VERSION: v2.7.0    # google/osv-scanner releases (2026-10-12)
+  GRYPE_VERSION: v0.121.0        # anchore/grype releases (2026-10-19)
+  CARGO_DENY_VERSION: 0.20.2     # EmbarkStudios/cargo-deny releases (2026-07-09)
+
+jobs:
+  # ---------------------------------------------------------------------
+  # Layer 1 of the three-layer vendor-exclusion engine. REQUIRED CHECK.
+  # Never make this optional, allow-failure, or skippable.
+  # ---------------------------------------------------------------------
+  vendor-gate:
+    name: Vendor gate (Meta/OpenAI/xAI)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # The deliberately-failing fixture: proves the gate catches a denied
+      # dep and does not false-positive on real ones. If the gate is broken,
+      # this fails before the real scan can pass by accident.
+      - name: Prove the gate works (deliberately-failing fixture)
+        run: python3 scripts/vendor_gate.py --self-test
+
+      - name: Scan resolved dependency graph
+        run: python3 scripts/vendor_gate.py
+
+  lint:
+    name: fmt + clippy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Toolchain
+        run: rustup show && rustup component add rustfmt clippy
+      - name: rustfmt
+        run: cargo fmt --all -- --check
+      - name: clippy
+        run: cargo clippy --workspace --all-targets --all-features -- -D warnings
+
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Toolchain
+        run: rustup show
+      - name: cargo test
+        run: cargo test --workspace --all-features --locked
+
+  supply-chain:
+    name: SBOM + vulns + licenses
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # Binaries are downloaded WITHOUT executing, checksum-verified against
+      # the publisher's checksum file, and only then installed.
+      - name: Install Syft (pinned, checksum-verified)
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/.local/bin" /tmp/syft-dl && cd /tmp/syft-dl
+          V="${SYFT_VERSION#v}"
+          curl -sSfLO "https://github.com/anchore/syft/releases/download/${SYFT_VERSION}/syft_${V}_linux_amd64.tar.gz"
+          curl -sSfLO "https://github.com/anchore/syft/releases/download/${SYFT_VERSION}/syft_${V}_checksums.txt"
+          grep "syft_${V}_linux_amd64.tar.gz" "syft_${V}_checksums.txt" | sha256sum --check --strict
+          tar -xzf "syft_${V}_linux_amd64.tar.gz" syft
+          install -m 0755 syft "$HOME/.local/bin/syft"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Install Grype (pinned, checksum-verified)
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/.local/bin" /tmp/grype-dl && cd /tmp/grype-dl
+          V="${GRYPE_VERSION#v}"
+          curl -sSfLO "https://github.com/anchore/grype/releases/download/${GRYPE_VERSION}/grype_${V}_linux_amd64.tar.gz"
+          curl -sSfLO "https://github.com/anchore/grype/releases/download/${GRYPE_VERSION}/grype_${V}_checksums.txt"
+          grep "grype_${V}_linux_amd64.tar.gz" "grype_${V}_checksums.txt" | sha256sum --check --strict
+          tar -xzf "grype_${V}_linux_amd64.tar.gz" grype
+          install -m 0755 grype "$HOME/.local/bin/grype"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Generate SBOM (Syft, SPDX + CycloneDX)
+        run: |
+          set -euo pipefail
+          mkdir -p SBOM
+          syft dir:. -o spdx-json=SBOM/gooseclaw.spdx.json \
+                     -o cyclonedx-json=SBOM/gooseclaw.cdx.json
+
+      - name: Vulnerability scan (OSV-Scanner, pinned, checksum-verified)
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/.local/bin" /tmp/osv-dl && cd /tmp/osv-dl
+          curl -sSfLO "https://github.com/google/osv-scanner/releases/download/${OSV_SCANNER_VERSION}/osv-scanner_linux_amd64"
+          curl -sSfLO "https://github.com/google/osv-scanner/releases/download/${OSV_SCANNER_VERSION}/osv-scanner_SHA256SUMS"
+          grep "osv-scanner_linux_amd64" osv-scanner_SHA256SUMS | sha256sum --check --strict
+          install -m 0755 osv-scanner_linux_amd64 "$HOME/.local/bin/osv-scanner"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          osv-scanner --lockfile=Cargo.lock
+
+      - name: Vulnerability scan (Grype, against the SBOM)
+        run: |
+          grype sbom:SBOM/gooseclaw.spdx.json --fail-on high
+
+      # cargo-deny is installed from source with --locked; cargo verifies the
+      # .crate checksum against the crates.io index (no opaque binary blob).
+      - name: Licenses + advisories (cargo-deny)
+        run: |
+          set -euo pipefail
+          cargo install cargo-deny --version "${CARGO_DENY_VERSION}" --locked
+          cargo deny check
+
+      - name: Upload SBOM
+        run: |
+          echo "Phase 1: attach SBOM/ to the release artifact set."

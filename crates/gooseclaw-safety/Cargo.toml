@@ -1,0 +1,11 @@
+[package]
+name = "gooseclaw-safety"
+description = "Safety pipeline: InjectionScanner / LeakScanner traits (design derived from IronClaw, MIT OR Apache-2.0 — see NOTICE), redaction, Unicode stripping."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+

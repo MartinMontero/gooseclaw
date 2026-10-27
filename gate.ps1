@@ -11,8 +11,8 @@ $ErrorActionPreference = 'Stop'
 $Root = $PSScriptRoot
 $Spec = Join-Path $Root 'specification.md'   # assembled canon - committed at repo root (homecoming 2026-09-07)
 $ClaudeMd = Join-Path $Root 'CLAUDE.md'
-$Ci = Join-Path $Root 'ci.yml'
-$VendorGate = Join-Path $Root 'vendor_gate.py'
+$Ci = Join-Path $Root '.github\workflows\ci.yml'   # moved 2026-10-27 (approved)
+$VendorGate = Join-Path $Root 'scripts\vendor_gate.py'   # moved 2026-10-27 (approved)
 $Recipe = Join-Path $Root 'RECIPE.md'
 $Gate = Join-Path $Root 'gate.ps1'
 $AuditDir = Join-Path $Root 'docs\audit'
@@ -49,7 +49,7 @@ $script:Checks = [ordered]@{
         foreach ($f in @($ClaudeMd, $Ci, $VendorGate)) { if (Test-Path $f) { $h++ } }
         $cm = Read-Text $ClaudeMd
         if ($null -ne $cm -and $cm.Contains('TIER 1')) { $h++ }
-        New-Result ($h -eq 4) "$h/4 (CLAUDE.md + ci.yml + vendor_gate.py exist; CLAUDE.md has TIER 1)"
+        New-Result ($h -eq 4) "$h/4 (CLAUDE.md + .github/workflows/ci.yml + scripts/vendor_gate.py exist; CLAUDE.md has TIER 1)"
     }
 
     'Seven-crate design (spec)' = {
@@ -122,13 +122,13 @@ $script:Checks = [ordered]@{
         $vg = Read-Text $VendorGate
         if ($null -ne $ci -and $ci.Contains('--self-test')) { $h++ } else { $notes += 'ci.yml missing --self-test wiring' }
         if ($null -ne $vg -and $vg.Contains('EXCEPTIONS: dict[str, str] = {}')) { $h++ } else { $notes += 'EXCEPTIONS map not empty or gate unreadable' }
-        if ($null -ne $ci -and [regex]::Matches($ci, 'PIN_RESOLVE_IN_PHASE_0').Count -eq 9) { $h++ } else { $notes += 'PIN_RESOLVE_IN_PHASE_0 count drifted from 9' }
+        if ($null -ne $ci -and [regex]::Matches($ci, 'PIN_RESOLVE_IN_PHASE_0').Count -eq 0 -and $ci.Contains('actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1')) { $h++ } else { $notes += 'pins unresolved or checkout SHA drifted' }
         $py = Get-Command python -ErrorAction SilentlyContinue
         if ($null -ne $py) {
             & python $VendorGate --self-test | Out-Null
             if ($LASTEXITCODE -eq 0) { $h++ } else { $notes += "vendor_gate.py --self-test exit $LASTEXITCODE" }
         } else { $notes += 'python not on PATH' }
-        $d = "$h/4 (vendor_gate.py --self-test exit 0; ci.yml wires --self-test; EXCEPTIONS empty; 9 PIN placeholders)"
+        $d = "$h/4 (vendor_gate.py --self-test exit 0; ci.yml wires --self-test; EXCEPTIONS empty; 0 PIN placeholders + checkout SHA pinned)"
         if ($notes.Count -gt 0) { $d = $d + ' :: ' + ($notes -join '; ') }
         New-Result ($h -eq 4) $d
     }

@@ -1,0 +1,18 @@
+[package]
+name = "gooseclaw"
+description = "GooseClaw core: ACP supervisor for the goose subprocess, the single core-owned Rule-9 gate, scheduler, durable session state."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+agent-client-protocol.workspace = true
+tokio.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+ed25519-dalek.workspace = true
+anyhow.workspace = true
+

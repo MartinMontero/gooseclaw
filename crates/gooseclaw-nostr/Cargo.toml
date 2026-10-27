@@ -1,0 +1,11 @@
+[package]
+name = "gooseclaw-nostr"
+description = "Nostr protocol layer (rust-nostr): NIP-17/44/59/46/57/61/32/56. NIP-46 bunker custody, fail-closed. Phase 1: types only (no network)."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+
