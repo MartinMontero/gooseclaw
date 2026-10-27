@@ -114,11 +114,14 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p SBOM
-          # SBOM = OUR supply chain only. Exclusions: node_modules (archived
-          # 2026-09-07 audit-probe artifact, not a dependency of this workspace),
+          # SBOM = what ships in the binary. Exclusions (verified locally with
+          # syft 1.55.0, checksum-verified): ./docs/** (audit docs incl. the archived
+          # 2026-09-07 probe's package-lock.json — NOT a dependency of this workspace;
+          # excluding node_modules alone does NOT help, syft catalogs lockfiles),
           # target/ (build output), reference/ (study-only clone, gitignored).
-          syft dir:. --exclude "./**/node_modules/**" --exclude "./target/**" \
-                     --exclude "./reference/**" \
+          # Result: 0 npm packages, 179 rust packages (matches Cargo.lock).
+          syft dir:. --exclude "./docs/**" --exclude "./target/**" \
+                     --exclude "./reference/**" --exclude "./**/node_modules/**" \
                      -o spdx-json=SBOM/gooseclaw.spdx.json \
                      -o cyclonedx-json=SBOM/gooseclaw.cdx.json
 
