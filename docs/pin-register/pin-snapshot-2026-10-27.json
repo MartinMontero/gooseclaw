@@ -1,0 +1,16 @@
+{
+  "as_of": "2026-10-27",
+  "note": "Verified-live snapshot recorded by docs/pin-register/08_PIN_REGISTER-2026-09-03.md's successor refresh (08_PIN_REGISTER-2026-10-27.md). Checked by scripts/pin_drift_check.py. Drift = flag, never silently fix; re-pin decisions are Martin's (03_DECISION_LOG.md).",
+  "entries": [
+    {"name": "goose latest release", "kind": "github_latest_release", "repo": "aaif-goose/goose", "expect": "v1.56.0"},
+    {"name": "wasmtime latest release", "kind": "github_latest_release", "repo": "bytecodealliance/wasmtime", "expect": "v50.0.0"},
+    {"name": "agent-client-protocol crate (max stable)", "kind": "crates_io_max_stable", "crate": "agent-client-protocol", "expect": "3.5.0"},
+    {"name": "nostr crate (max stable)", "kind": "crates_io_max_stable", "crate": "nostr", "expect": "0.45.5"},
+    {"name": "nostr-sdk crate (max stable)", "kind": "crates_io_max_stable", "crate": "nostr-sdk", "expect": "0.45.4"},
+    {"name": "cdk crate (max stable)", "kind": "crates_io_max_stable", "crate": "cdk", "expect": "0.18.2"},
+    {"name": "MCP spec latest tag", "kind": "github_first_tag", "repo": "modelcontextprotocol/specification", "expect": "2026-07-28"},
+    {"name": "IronClaw latest release", "kind": "github_latest_release", "repo": "nearai/ironclaw", "expect": "ironclaw-v1.4.1"},
+    {"name": "IronClaw wasmtime pin (main Cargo.toml)", "kind": "github_file_regex", "repo": "nearai/ironclaw", "path": "Cargo.toml", "pattern": "wasmtime = \\{ version = \"([^\"]+)\"", "expect": "47.0.4"},
+    {"name": "zapstore/zapstore-cli repo exists", "kind": "github_repo_exists", "repo": "zapstore/zapstore-cli", "expect": false}
+  ]
+}
