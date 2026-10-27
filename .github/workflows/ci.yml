@@ -114,7 +114,12 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p SBOM
-          syft dir:. -o spdx-json=SBOM/gooseclaw.spdx.json \
+          # SBOM = OUR supply chain only. Exclusions: node_modules (archived
+          # 2026-09-07 audit-probe artifact, not a dependency of this workspace),
+          # target/ (build output), reference/ (study-only clone, gitignored).
+          syft dir:. --exclude "./**/node_modules/**" --exclude "./target/**" \
+                     --exclude "./reference/**" \
+                     -o spdx-json=SBOM/gooseclaw.spdx.json \
                      -o cyclonedx-json=SBOM/gooseclaw.cdx.json
 
       - name: Vulnerability scan (OSV-Scanner, pinned, checksum-verified)
