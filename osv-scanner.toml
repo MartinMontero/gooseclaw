@@ -1,0 +1,8 @@
+# OSV-Scanner ignore register.
+# Same convention as scripts/vendor_gate.py EXCEPTIONS: every entry needs a
+# rationale and a date; entries exist to record a decision, not to hide findings.
+
+[[IgnoredVulns]]
+id = "GHSA-qwgh-2vcv-g2f7"
+ignoreUntil = 2026-11-27
+reason = """block-buffer 0.10.4, transitive via sha2 0.10.9 / ed25519-dalek 2.2.0 (cargo tree -i block-buffer). The advisory requires a CAUGHT PANIC inside a caller-provided compress callback (EagerBuffer/ReadBuffer cursor corruption). GooseClaw uses only one-shot Digest hashing (Sha256 new/update/finalize) — no custom compress callback, no catch_unwind in the hashing path; the vulnerable state is unreachable from our code. No fixed 0.10.x release exists (fix only in 0.12.1, incompatible major). Filed 2026-10-27 under the operator's explicit solve-the-failing-check instruction; operator to confirm or remove. Re-evaluate monthly or when a 0.10.x fix ships."""
