@@ -66,6 +66,7 @@ mod tests {
     use super::*;
     use tokio::io::AsyncWriteExt;
 
+    #[cfg(windows)]
     #[tokio::test]
     async fn spawned_process_round_trips_a_line() {
         // findstr echoes matching stdin lines. Absolute path: the scrubbed
@@ -83,6 +84,28 @@ mod tests {
         // Windows console tools buffer piped stdin until EOF: close stdin so
         // findstr processes and flushes. (The MCP/ACP servers we actually
         // supervise flush per line; findstr does not.)
+        drop(p.stdin);
+        let mut out = Vec::new();
+        tokio::io::AsyncReadExt::read_to_end(&mut p.stdout, &mut out)
+            .await
+            .expect("read");
+        let text = String::from_utf8_lossy(&out);
+        assert!(text.contains("ping"), "expected echo, got: {text:?}");
+        p.child.wait().await.ok();
+    }
+
+    #[cfg(unix)]
+    #[tokio::test]
+    async fn spawned_process_round_trips_a_line() {
+        // `cat` streams stdin lines straight back — same proof, unix flavor.
+        let spec = SpawnSpec {
+            program: "/bin/cat".into(),
+            args: vec![],
+            env: vec![("GOOSECLAW_TEST".into(), "1".into())],
+            cwd: None,
+        };
+        let mut p = spawn_jsonrpc(&spec).expect("spawn");
+        p.stdin.write_all(b"ping\n").await.expect("write");
         drop(p.stdin);
         let mut out = Vec::new();
         tokio::io::AsyncReadExt::read_to_end(&mut p.stdout, &mut out)

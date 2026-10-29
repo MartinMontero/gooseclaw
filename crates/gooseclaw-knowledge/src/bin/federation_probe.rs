@@ -1,11 +1,11 @@
 //! federation_probe — LIVE acceptance proof for Phase 2 (not CI).
 //!
 //! Spawns the REAL Alfred MCP server (feat/dual-era-vault-mcp) through the
-//! core-supervised seam and runs the spec section-8 Phase-2 acceptance gate:
-//!   1. Conflict test — human edit wins; stale write CONFLICT; vault untouched;
-//!      local copy discarded and re-fetched.
-//!   2. Alfred-offline degradation — writes MUTED, cached reads stale-flagged,
-//!      revalidation before the first post-restart write.
+//! core-supervised seam and runs the spec section-8 Phase-2 acceptance gate.
+//! Conflict test: human edit wins; stale write CONFLICT; vault untouched;
+//! local copy discarded and re-fetched. Alfred-offline degradation: writes
+//! MUTED, cached reads stale-flagged, revalidation before the first
+//! post-restart write.
 //! (Gate 3, dual-era wire capture, is proven Alfred-side; transcript in the
 //! same audit dir.)
 //!
@@ -136,7 +136,8 @@ async fn main() -> anyhow::Result<()> {
 
     // ---- Gate 2: Alfred-offline degradation -------------------------------
     ALFRED_DOWN.store(true, Ordering::SeqCst);
-    for mut c in CHILDREN.lock().unwrap().drain(..) {
+    let drained: Vec<_> = CHILDREN.lock().unwrap().drain(..).collect();
+    for mut c in drained {
         let _ = c.kill().await;
     }
     log_line(
@@ -208,7 +209,8 @@ async fn main() -> anyhow::Result<()> {
     );
 
     println!("PROBE-SUMMARY: GATE1=conflict-human-wins PASS; GATE2=offline-mute+revalidate PASS");
-    for mut c in CHILDREN.lock().unwrap().drain(..) {
+    let drained: Vec<_> = CHILDREN.lock().unwrap().drain(..).collect();
+    for mut c in drained {
         let _ = c.kill().await;
     }
     let _ = std::fs::remove_dir_all(&vault);
