@@ -27,6 +27,7 @@ proofs target the canon directly.
 | Payments (CDK/Lightning) | Nostr channel layer | canon contains `Cashu`, `P2PK`, `NIP-57` — 3/3 |
 | Skillsmith scope (RULED 2026-09-01) | Seven-crate design (spec) | canon §7.2(a) contains `Skillsmith`, `ELv2`, `2026-09-01` — 3/3 |
 | Vendor denylist enforcement (Meta/OpenAI/xAI) | Seed gate files (94f0658) | `python scripts/vendor_gate.py --self-test` exits 0; ci.yml wires `--self-test`; vendor_gate.py `EXCEPTIONS` map empty; ci.yml carries 0 `PIN_RESOLVE_IN_PHASE_0` placeholders and pins actions/checkout to full SHA `3d3c42e5...` — 4/4 |
+| MCP-vault federation (Phase 2, executed) | MCP-vault federation (Alfred sole writer) | `docs/audit/2026-10-29-phase2-federation/federation-probe.jsonl` contains `GATE 1 PASS` and `GATE 2 PASS`; `dual-era-wire-transcript.txt` contains `server/discover` and `initialize` — 4/4 |
 | Graph-engineering convention | Foundation spec (assembled canon) | `RECIPE.md` and `gate.ps1` exist; CLAUDE.md contains `Project graph`; `docs/audit/` exists — 4/4 |
 
 ## Parallel tracks
@@ -66,3 +67,10 @@ delegates to `vendor_gate.py --self-test` instead of duplicating the matcher.
    WHY: Phase-0 pin-resolution duty executed; placeholders were designed to be resolved.
    Resolutions recorded in docs/pin-register/08_PIN_REGISTER-2026-10-27.md.
 3. gate.ps1 check implementations updated to match both new proof lines.
+
+**2026-10-29 — Phase 2 (federation) — ADDITIVE, no existing proof line changed:**
+OLD graph: no executed-federation row (Phase 2 proof was token-level canon text only).
+NEW row: 'MCP-vault federation (Phase 2, executed)' — proof delegates to the recorded
+live artifacts (probe JSONL + wire transcript) per the delegation rule. gate.ps1 gained
+the matching check. Canon O5 row: OLD "To specify, Phase 2" -> NEW "SPECIFIED 2026-10-29
+(TTL 60s; offline mute; stale-flagged cached reads; revalidate-before-write on reconnect)".

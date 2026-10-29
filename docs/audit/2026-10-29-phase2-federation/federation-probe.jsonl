@@ -1,0 +1,12 @@
+{"step":"1.read","observed":"version=Some(\"3836120cdf37ebbab6a5f7f98fcc2ebd0f6c45622674d43887c89bfeeefda02a\") stale=false"}
+{"step":"1.human-edit","observed":"note.md overwritten out-of-band (v2)"}
+{"step":"1.conflict","observed":"CONFLICT; fresh=\"v2 human edit in Alfred\\n\""}
+{"step":"1.vault-untouched","observed":"disk=\"v2 human edit in Alfred\\n\""}
+{"step":"1.reread","observed":"discarded local copy; re-read shows v2 — GATE 1 PASS"}
+{"step":"2.alfred-down","observed":"server killed; factory refusing new connections"}
+{"step":"2.write-muted","observed":"write refused (Muted), nothing queued"}
+{"step":"2.read-stale","observed":"stale=true content=\"v2 human edit in Alfred\\n\""}
+{"step":"2.uncached-read","observed":"refused (Offline)"}
+{"step":"2.restart","observed":"Alfred back; human edited during outage (v4)"}
+{"step":"2.revalidated-write","observed":"written after revalidation, version=9b8dac59912b3688539d1b13cbc1c25557edea44f3d160d279a7e415cac04793"}
+{"step":"2.final","observed":"disk=\"v5 agent after reconnect\\n\" — GATE 2 PASS"}

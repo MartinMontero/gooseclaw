@@ -15,6 +15,7 @@
 
 pub mod gate;
 pub mod session;
+pub mod supervise;
 
 pub use gate::{
     ActionHash, ActionRequest, Approval, AuditRecord, Decision, GateCaller, GateError,

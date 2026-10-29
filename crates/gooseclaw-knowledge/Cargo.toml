@@ -8,4 +8,9 @@ repository.workspace = true
 publish = false
 
 [dependencies]
+gooseclaw.workspace = true
+tokio.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+anyhow.workspace = true
 
