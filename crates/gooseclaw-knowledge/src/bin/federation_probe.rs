@@ -35,7 +35,9 @@ fn log_line(f: &std::sync::Mutex<std::fs::File>, step: &str, observed: &str) {
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     std::fs::create_dir_all(AUDIT)?;
-    let log = std::sync::Mutex::new(std::fs::File::create(format!("{AUDIT}/federation-probe.jsonl"))?);
+    let log = std::sync::Mutex::new(std::fs::File::create(format!(
+        "{AUDIT}/federation-probe.jsonl"
+    ))?);
 
     // Scratch vault (temp; not Alfred's real vault).
     let vault = std::env::temp_dir().join(format!("gooseclaw-fed-probe-{}", std::process::id()));
@@ -76,7 +78,11 @@ async fn main() -> anyhow::Result<()> {
                     cwd: Some(PathBuf::from(ALFRED)),
                 };
                 let p = spawn_jsonrpc(&spec).map_err(|e| e.to_string())?;
-                let gooseclaw::supervise::JsonRpcProcess { child, stdin, stdout } = p;
+                let gooseclaw::supervise::JsonRpcProcess {
+                    child,
+                    stdin,
+                    stdout,
+                } = p;
                 CHILDREN.lock().unwrap().push(child);
                 Ok((stdout, stdin))
             })
@@ -87,8 +93,15 @@ async fn main() -> anyhow::Result<()> {
 
     // ---- Gate 1: conflict — human edit wins ------------------------------
     let read = client.read("note.md").await?;
-    log_line(&log, "1.read", &format!("version={:?} stale={}", read.expected_version, read.stale));
-    let v1 = read.expected_version.clone().expect("read carries expectedVersion");
+    log_line(
+        &log,
+        "1.read",
+        &format!("version={:?} stale={}", read.expected_version, read.stale),
+    );
+    let v1 = read
+        .expected_version
+        .clone()
+        .expect("read carries expectedVersion");
 
     std::fs::write(vault.join("note.md"), "v2 human edit in Alfred\n")?; // out-of-band
     log_line(&log, "1.human-edit", "note.md overwritten out-of-band (v2)");
@@ -96,18 +109,29 @@ async fn main() -> anyhow::Result<()> {
     let outcome = client.write("note.md", "v3 agent clobber\n").await?;
     match &outcome {
         WriteOutcome::Conflict { fresh } => {
-            log_line(&log, "1.conflict", &format!("CONFLICT; fresh={:?}", fresh.content));
+            log_line(
+                &log,
+                "1.conflict",
+                &format!("CONFLICT; fresh={:?}", fresh.content),
+            );
             assert_eq!(fresh.content, "v2 human edit in Alfred\n");
         }
         other => panic!("GATE 1 FAIL: expected Conflict, got {other:?}"),
     }
     let on_disk = std::fs::read_to_string(vault.join("note.md"))?;
-    assert_eq!(on_disk, "v2 human edit in Alfred\n", "GATE 1 FAIL: vault was clobbered");
+    assert_eq!(
+        on_disk, "v2 human edit in Alfred\n",
+        "GATE 1 FAIL: vault was clobbered"
+    );
     log_line(&log, "1.vault-untouched", &format!("disk={on_disk:?}"));
     let reread = client.read("note.md").await?;
     assert_eq!(reread.content, "v2 human edit in Alfred\n");
     assert!(!reread.stale);
-    log_line(&log, "1.reread", "discarded local copy; re-read shows v2 — GATE 1 PASS");
+    log_line(
+        &log,
+        "1.reread",
+        "discarded local copy; re-read shows v2 — GATE 1 PASS",
+    );
     let _ = v1;
 
     // ---- Gate 2: Alfred-offline degradation -------------------------------
@@ -115,37 +139,73 @@ async fn main() -> anyhow::Result<()> {
     for mut c in CHILDREN.lock().unwrap().drain(..) {
         let _ = c.kill().await;
     }
-    log_line(&log, "2.alfred-down", "server killed; factory refusing new connections");
+    log_line(
+        &log,
+        "2.alfred-down",
+        "server killed; factory refusing new connections",
+    );
 
     let w = client.write("note.md", "offline write\n").await;
-    assert!(matches!(w, Err(KnowledgeError::Muted)), "GATE 2 FAIL: got {w:?}");
-    log_line(&log, "2.write-muted", "write refused (Muted), nothing queued");
+    assert!(
+        matches!(w, Err(KnowledgeError::Muted)),
+        "GATE 2 FAIL: got {w:?}"
+    );
+    log_line(
+        &log,
+        "2.write-muted",
+        "write refused (Muted), nothing queued",
+    );
 
     let stale = client.read("note.md").await?;
     assert!(stale.stale, "GATE 2 FAIL: cached read not flagged stale");
-    log_line(&log, "2.read-stale", &format!("stale=true content={:?}", stale.content));
+    log_line(
+        &log,
+        "2.read-stale",
+        &format!("stale=true content={:?}", stale.content),
+    );
 
     let miss = client.read("never-read.md").await;
-    assert!(matches!(miss, Err(KnowledgeError::Offline)), "GATE 2 FAIL: got {miss:?}");
+    assert!(
+        matches!(miss, Err(KnowledgeError::Offline)),
+        "GATE 2 FAIL: got {miss:?}"
+    );
     log_line(&log, "2.uncached-read", "refused (Offline)");
 
     // Restart; the human edited again during the outage.
     std::fs::write(vault.join("note.md"), "v4 human edit during outage\n")?;
     ALFRED_DOWN.store(false, Ordering::SeqCst);
-    log_line(&log, "2.restart", "Alfred back; human edited during outage (v4)");
+    log_line(
+        &log,
+        "2.restart",
+        "Alfred back; human edited during outage (v4)",
+    );
 
-    let post = client.write("note.md", "v5 agent after reconnect\n").await?;
+    let post = client
+        .write("note.md", "v5 agent after reconnect\n")
+        .await?;
     match &post {
         // Revalidation sees v4 and the write lands cleanly on top of it.
         WriteOutcome::Written { version } => {
-            log_line(&log, "2.revalidated-write", &format!("written after revalidation, version={version}"));
+            log_line(
+                &log,
+                "2.revalidated-write",
+                &format!("written after revalidation, version={version}"),
+            );
         }
         WriteOutcome::Conflict { fresh } => {
-            log_line(&log, "2.revalidated-conflict", &format!("revalidation surfaced human edit: {:?}", fresh.content));
+            log_line(
+                &log,
+                "2.revalidated-conflict",
+                &format!("revalidation surfaced human edit: {:?}", fresh.content),
+            );
         }
     }
     let final_disk = std::fs::read_to_string(vault.join("note.md"))?;
-    log_line(&log, "2.final", &format!("disk={final_disk:?} — GATE 2 PASS"));
+    log_line(
+        &log,
+        "2.final",
+        &format!("disk={final_disk:?} — GATE 2 PASS"),
+    );
 
     println!("PROBE-SUMMARY: GATE1=conflict-human-wins PASS; GATE2=offline-mute+revalidate PASS");
     for mut c in CHILDREN.lock().unwrap().drain(..) {
