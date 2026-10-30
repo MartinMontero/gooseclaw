@@ -107,7 +107,7 @@ fn has_url(text: &str) -> Option<String> {
             if !host.is_empty()
                 && !URL_HOST_ALLOWLIST
                     .iter()
-                    .any(|allowed| host == *allowed || host.ends_with(&format!(".{allowed}")))
+                    .any(|&allowed| host == allowed || host.ends_with(&format!(".{allowed}")))
             {
                 return Some(host.to_string());
             }

@@ -12,7 +12,7 @@
 #![forbid(unsafe_code)]
 
 use crate::{
-    ApprovalRenderer, ChannelSession, InboundAllowlist, InboundMessage, SenderKey,
+    ApprovalRenderer, ChannelSession, InboundAllowlist, SenderKey,
     moderation::{moderate, ModerationReason, Verdict},
 };
 use gooseclaw::gate::{ActionRequest, Approval, GateError};
@@ -76,7 +76,7 @@ pub const CASES: &[Case] = &[
 /// Run the full table. Every case asserts its required outcome.
 pub fn run() {
     for case in CASES {
-        let env = InboundEnvelope {
+        let env = crate::InboundEnvelope {
             sender: SenderKey([1u8; 32]),
             text: case.text.to_string(),
             received_at_unix: 0,
