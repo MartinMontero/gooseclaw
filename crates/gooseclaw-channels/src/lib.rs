@@ -5,6 +5,9 @@
 //! is untrusted data, never instructions.
 //! AMENDMENT 2 (approved 2026-10-27): channels RENDER the approve/deny UX
 //! but CALL the core gate via GateCaller; they never own a decision.
+//! Phase 3: deterministic moderation (moderation.rs) + the red-team suite
+//! (redteam.rs) — Unicode smuggling, crafted-DM injection, trifecta exfil,
+//! approval spoof/replay, chunk reassembly.
 
 #![forbid(unsafe_code)]
 
@@ -176,3 +179,7 @@ mod tests {
         ));
     }
 }
+
+/// Phase 3: deterministic moderation + the red-team adversarial suite.
+pub mod moderation;
+pub mod redteam;
