@@ -15,7 +15,8 @@ use crate::{
     ApprovalRenderer, ChannelSession, InboundAllowlist, InboundMessage, SenderKey,
     moderate, ModerationReason, Verdict,
 };
-use gooseclaw::{ActionRequest, Approval, GateError, Rule9Gate};
+use gooseclaw::gate::{ActionRequest, Approval, GateError};
+use gooseclaw::Rule9Gate;
 
 /// One adversarial case: a name, an input, and the outcome the defense MUST
 /// produce. Kept as data so a weakening change fails the table.
