@@ -100,9 +100,10 @@ $script:Checks = [ordered]@{
         New-Result $ok ("cargo test -p gooseclaw-knowledge exit=$code; summed passed=$total (expected 6 = RRF 2 + federation 4); named proofs present $present/4")
     }
 
-    'Nostr channel red-team suite (Phase 3)' = {
-        # Phase 3 proof: cargo test -p gooseclaw-channels must sum to 13 passed
-        # (4 baseline + 9 adversarial tests). Source must carry moderate() and
+    'Nostr channel red-team suite and relay seam (Phase 3)' = {
+        # Phase 3 proof: cargo test -p gooseclaw-channels must sum to 18 passed
+        # (4 baseline + 14 adversarial/transport tests: relay drain x2, relay chunking,
+        # relay signer-offline, relay oversized). Source must carry moderate() and
         # chunk_text() — the two functions the suite leans on.
         $out = & cargo test -p gooseclaw-channels 2>&1 | Out-String
         $code = $LASTEXITCODE
@@ -116,8 +117,8 @@ $script:Checks = [ordered]@{
         if ($null -ne $src) {
             foreach ($n in $names) { if ($src.Contains($n)) { $present++ } }
         }
-        $ok = ($code -eq 0) -and ($total -eq 13) -and ($present -eq 2)
-        New-Result $ok ("cargo test -p gooseclaw-channels exit=$code; summed passed=$total (expected 13 = 4 baseline + 9 adversarial); moderate()/chunk_text() present $present/2")
+        $ok = ($code -eq 0) -and ($total -eq 18) -and ($present -eq 2)
+        New-Result $ok ("cargo test -p gooseclaw-channels exit=$code; summed passed=$total (expected 18 = 4 baseline + 14 adversarial/transport); moderate()/chunk_text() present $present/2")
     }
 
     'Persistence (libSQL/FTS5 + native vector)' = {
