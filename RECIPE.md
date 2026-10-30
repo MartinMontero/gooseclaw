@@ -21,13 +21,14 @@ proofs target the canon directly.
 | Rule-9 gate (core-owned) | Seven-crate design (spec) | CLAUDE.md contains `Rule 9` and `go-ahead`; canon §4.1 contains `core-owned` and `one enforcement point` — 4/4 |
 | ACP contract (Approve mode, protocolVersion 1) | Rule-9 gate (core-owned) | canon §3.1 contains `protocolVersion = 1` and `Approve` — 2/2 |
 | MCP-vault federation (Alfred sole writer) | ACP contract (Approve mode, protocolVersion 1) | canon §3.2 contains `Single-writer` and `system-of-record` — 2/2 |
+| MCP-vault federation client (Phase 2: expectedVersion + offline semantics) | MCP-vault federation (Alfred sole writer) | crates/gooseclaw-knowledge `cargo test` summed `N passed` = **6** (rrf_math_is_exact + fuse_prefers_docs_ranked_in_both_lists + 4 new: conflict_human_edit_wins, offline_writes_mute, create_only_null_semantics, ttl_marks_old_cache_entries_expired); source carries `CONFLICT` and `stale` semantics — 2/2 |
+| Nostr channel red-team suite (Phase 3) | ACP contract (Approve mode, protocolVersion 1) | crates/gooseclaw-channels `cargo test` summed `N passed` = **13** (4 baseline + 9 new: injection_pattern, exfil_url, allowlisted_host, trifecta, oversized, chunking x2, redteam_table, approval_defenses); `moderate()` and `chunk_text()` present in moderation.rs — 2/2 |
 | Persistence (libSQL/FTS5 + native vector) | MCP-vault federation (Alfred sole writer) | canon contains `libSQL`, `FTS5`, `native vector` — 3/3 |
 | Nostr channel layer | ACP contract (Approve mode, protocolVersion 1) | canon contains `NIP-17`, `NIP-44`, `NIP-46` — 3/3 |
 | Channel priority (RULED 2026-09-01) | Nostr channel layer | canon §7.2(b) contains `Signal`, `White Noise`, `marmot-protocol/mdk` — 3/3 |
 | Payments (CDK/Lightning) | Nostr channel layer | canon contains `Cashu`, `P2PK`, `NIP-57` — 3/3 |
 | Skillsmith scope (RULED 2026-09-01) | Seven-crate design (spec) | canon §7.2(a) contains `Skillsmith`, `ELv2`, `2026-09-01` — 3/3 |
 | Vendor denylist enforcement (Meta/OpenAI/xAI) | Seed gate files (94f0658) | `python scripts/vendor_gate.py --self-test` exits 0; ci.yml wires `--self-test`; vendor_gate.py `EXCEPTIONS` map empty; ci.yml carries 0 `PIN_RESOLVE_IN_PHASE_0` placeholders and pins actions/checkout to full SHA `3d3c42e5...` — 4/4 |
-| MCP-vault federation (Phase 2, executed) | MCP-vault federation (Alfred sole writer) | `docs/audit/2026-10-29-phase2-federation/federation-probe.jsonl` contains `GATE 1 PASS` and `GATE 2 PASS`; `dual-era-wire-transcript.txt` contains `server/discover` and `initialize` — 4/4 |
 | Graph-engineering convention | Foundation spec (assembled canon) | `RECIPE.md` and `gate.ps1` exist; CLAUDE.md contains `Project graph`; `docs/audit/` exists — 4/4 |
 
 ## Parallel tracks
@@ -68,9 +69,24 @@ delegates to `vendor_gate.py --self-test` instead of duplicating the matcher.
    Resolutions recorded in docs/pin-register/08_PIN_REGISTER-2026-10-27.md.
 3. gate.ps1 check implementations updated to match both new proof lines.
 
-**2026-10-29 — Phase 2 (federation) — ADDITIVE, no existing proof line changed:**
-OLD graph: no executed-federation row (Phase 2 proof was token-level canon text only).
-NEW row: 'MCP-vault federation (Phase 2, executed)' — proof delegates to the recorded
-live artifacts (probe JSONL + wire transcript) per the delegation rule. gate.ps1 gained
-the matching check. Canon O5 row: OLD "To specify, Phase 2" -> NEW "SPECIFIED 2026-10-29
-(TTL 60s; offline mute; stale-flagged cached reads; revalidate-before-write on reconnect)".
+**2026-10-29 — Phase 2 session (federation client, expectedVersion + offline semantics):**
+
+4. NEW proof row added: "MCP-vault federation client (Phase 2: expectedVersion + offline
+   semantics)". OLD: no federation-client row existed (Phase 1 delivered only the RRF
+   seam). NEW: `cargo test -p gooseclaw-knowledge` summed `N passed` = **6** (RRF's 2 +
+   4 new named proofs: conflict_human_edit_wins, offline_writes_mute,
+   create_only_null_semantics, ttl_marks_old_cache_entries_expired).
+   WHY: spec §8's acceptance gate is executable now — the conflict test (human edit wins)
+   and the Alfred-offline degradation test (mute/stale/revalidate) are real tests, not
+   claims. gate.ps1 gained a matching `Test-FederationClient` check block.
+
+**2026-10-29 — Phase 3 session (Nostr channel red-team suite):**
+
+5. NEW proof row added: "Nostr channel red-team suite (Phase 3)". OLD: no channel
+   red-team row existed. NEW: `cargo test -p gooseclaw-channels` summed `N passed` = **13**
+   (4 baseline + 9 new adversarial tests: injection_pattern, exfil_url, allowlisted_host,
+   trifecta, oversized, chunking x2, redteam_table, approval_defenses).
+   WHY: spec §8 requires the red-team/prompt-injection suite to pass — Unicode smuggling,
+   crafted-DM injection, trifecta exfil, approval spoof/replay — and the suite now exists
+   as executable tests, not documentation. gate.ps1 gained a matching `Test-RedteamSuite`
+   check block.

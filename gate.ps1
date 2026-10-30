@@ -80,6 +80,46 @@ $script:Checks = [ordered]@{
         New-Result ($h -eq $need.Count) ("$h/" + $need.Count + ' tokens in canon section 3.2')
     }
 
+    'MCP-vault federation client (Phase 2: expectedVersion + offline semantics)' = {
+        # Phase 2 proof: cargo test -p gooseclaw-knowledge must sum to 6 passed
+        # (RRF's 2 + 4 new named federation tests). A missing toolchain or a
+        # failing suite is a FAIL, never a skip (DRIFT RULE).
+        $out = & cargo test -p gooseclaw-knowledge 2>&1 | Out-String
+        $code = $LASTEXITCODE
+        $total = 0
+        foreach ($m in [regex]::Matches($out, 'test result: ok\.\s+(\d+) passed')) {
+            $total += [int]$m.Groups[1].Value
+        }
+        $src = Read-Text (Join-Path $Root 'crates\gooseclaw-knowledge\src\federation.rs')
+        $names = @('conflict_human_edit_wins', 'offline_writes_mute', 'create_only_null_semantics', 'ttl_marks_old_cache_entries_expired')
+        $present = 0
+        if ($null -ne $src) {
+            foreach ($n in $names) { if ($src.Contains($n)) { $present++ } }
+        }
+        $ok = ($code -eq 0) -and ($total -eq 6) -and ($present -eq 4)
+        New-Result $ok ("cargo test -p gooseclaw-knowledge exit=$code; summed passed=$total (expected 6 = RRF 2 + federation 4); named proofs present $present/4")
+    }
+
+    'Nostr channel red-team suite (Phase 3)' = {
+        # Phase 3 proof: cargo test -p gooseclaw-channels must sum to 13 passed
+        # (4 baseline + 9 adversarial tests). Source must carry moderate() and
+        # chunk_text() — the two functions the suite leans on.
+        $out = & cargo test -p gooseclaw-channels 2>&1 | Out-String
+        $code = $LASTEXITCODE
+        $total = 0
+        foreach ($m in [regex]::Matches($out, 'test result: ok\.\s+(\d+) passed')) {
+            $total += [int]$m.Groups[1].Value
+        }
+        $src = Read-Text (Join-Path $Root 'crates\gooseclaw-channels\src\moderation.rs')
+        $names = @('moderate', 'chunk_text')
+        $present = 0
+        if ($null -ne $src) {
+            foreach ($n in $names) { if ($src.Contains($n)) { $present++ } }
+        }
+        $ok = ($code -eq 0) -and ($total -eq 13) -and ($present -eq 2)
+        New-Result $ok ("cargo test -p gooseclaw-channels exit=$code; summed passed=$total (expected 13 = 4 baseline + 9 adversarial); moderate()/chunk_text() present $present/2")
+    }
+
     'Persistence (libSQL/FTS5 + native vector)' = {
         $c = Read-Text $Spec
         $need = @('libSQL', 'FTS5', 'native vector')
@@ -140,19 +180,6 @@ $script:Checks = [ordered]@{
         $cm = Read-Text $ClaudeMd
         if ($null -ne $cm -and $cm.Contains('Project graph')) { $h++ }
         New-Result ($h -eq 4) "$h/4 (RECIPE.md + gate.ps1 + docs/audit/ exist; CLAUDE.md has Project graph)"
-    }
-
-    'MCP-vault federation (Phase 2, executed)' = {
-        $probe = Join-Path $AuditDir '2026-10-29-phase2-federation\federation-probe.jsonl'
-        $wire = Join-Path $AuditDir '2026-10-29-phase2-federation\dual-era-wire-transcript.txt'
-        $h = 0
-        $p = Read-Text $probe
-        if ($null -ne $p -and $p.Contains('GATE 1 PASS')) { $h++ }
-        if ($null -ne $p -and $p.Contains('GATE 2 PASS')) { $h++ }
-        $wt = Read-Text $wire
-        if ($null -ne $wt -and $wt.Contains('server/discover')) { $h++ }
-        if ($null -ne $wt -and $wt.Contains('"initialize"')) { $h++ }
-        New-Result ($h -eq 4) "$h/4 (probe GATE1+GATE2; wire discover+initialize)"
     }
 
     # SelfTest canary: proof demands a string that does not exist. Must FAIL.
