@@ -26,6 +26,7 @@ New this refresh: every checkable row is now machine-checkable — `scripts/pin_
 | **Block Goose Grant** | $100K / 12mo, rolling, milestone, quarterly; block.github.io/goose/grants | Grant discussion **aaif-goose/goose#3674 still OPEN** (titled "goose grant program"). The grants page was NOT reachable from this environment (curl HTTP 000 to both block.github.io and aaif-goose.github.io) — parameters UNVERIFIED live | Confirmed (program exists) / parameters UNVERIFIED | github.com/aaif-goose/goose/discussions/3674 |
 | **Trivy** (banned) | CVE-2026-33634, CISA KEV 2026-03-26; ban stands | Not re-verified this sweep; no reason to revisit — ban stands | Confirmed (prior stands) | github.com/advisories (CVE-2026-33634) |
 | **White Noise / Marmot** | whitenoise.chat on Marmot; crates at marmot-protocol/mdk; whitenoise-rs obsolete | Confirmed: marmot-protocol/mdk active (pushed 2026-10-27) | Confirmed | github.com/marmot-protocol/mdk |
+| **rsky (AT Protocol in Rust, Blacksky)** | not tracked | **WATCH (new, 2026-10-29):** repo blacksky-algorithms/rsky, Apache-2.0 (license receipt pinned to commit e7158f227f22cb770a1f8f8a3574776fb1ea17c7). No formal releases exist (pre-1.0); stability not guaranteed until 1.0.0. This is a WATCH entry — tracked, not committed. rsky ≠ rkyv | **WATCH — new row, no pin change** | github.com/blacksky-algorithms/rsky; catalog entries src/content/docs/catalog/rsky.mdx and rsky-pds.mdx (WCJBT) |
 
 ## Standing watch-list (updated 2026-10-27)
 1. **goose cadence** — v1.48 → v1.56 in ~8 weeks; now 8 releases behind the last register state. Build against the ACP wire version, not goose internals. (But see 2.)
@@ -35,6 +36,7 @@ New this refresh: every checkable row is now machine-checkable — `scripts/pin_
 5. **IronClaw post-Reborn** — 1.4.1 out; re-derive the steals section against a pinned 1.x commit (04 §4 + amendment 4 of 10) before any port. Still owed.
 6. **libSQL maintenance mode** — banner unchanged; evaluate before Phase 0 locks the persistence pin.
 7. **NEW: Zapstore distribution path broken** — zapstore-cli repo gone; the ratified distribution decision (Zapstore) needs a live target or a re-ruling. Martin's call.
+8. **NEW: rsky watch (added 2026-10-29)** — AT Protocol in Rust by Blacksky. Pre-1.0 stability caveat verbatim: "This library is a work in progress. Things will change. Things are incomplete. Things will break. Until the project reaches version 1.0.0, stability will not be guaranteed." Catalog entries live in WCJBT (rsky, rsky-pds); any future integration step (atproto channel, identity bridge, self-hosted PDS) is its own decision-gated step per rsky-integration-plan.md — no step proceeds on assumption.
 
 ## Unverifiable residue (stated, not worked around)
 - ACP wire protocol version under crate 3.x (docs.rs unreachable for method-level check from this environment).
