@@ -11,6 +11,12 @@
 
 #![forbid(unsafe_code)]
 
+pub mod client;
+pub mod mcp;
+
+pub use client::{CACHE_TTL, KnowledgeError, ReadResult, VaultClient, WriteOutcome};
+pub use mcp::{LEGACY_VERSION, McpConnection, McpError, ServerEra};
+
 /// Reciprocal Rank Fusion score for one document given its 1-based ranks.
 /// rrf = sum of 1 / (k + rank_i). Standard constant k = 60 (IronClaw memory
 /// uses RRF; see NOTICE).

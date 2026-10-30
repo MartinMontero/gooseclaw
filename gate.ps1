@@ -142,6 +142,19 @@ $script:Checks = [ordered]@{
         New-Result ($h -eq 4) "$h/4 (RECIPE.md + gate.ps1 + docs/audit/ exist; CLAUDE.md has Project graph)"
     }
 
+    'MCP-vault federation (Phase 2, executed)' = {
+        $probe = Join-Path $AuditDir '2026-10-29-phase2-federation\federation-probe.jsonl'
+        $wire = Join-Path $AuditDir '2026-10-29-phase2-federation\dual-era-wire-transcript.txt'
+        $h = 0
+        $p = Read-Text $probe
+        if ($null -ne $p -and $p.Contains('GATE 1 PASS')) { $h++ }
+        if ($null -ne $p -and $p.Contains('GATE 2 PASS')) { $h++ }
+        $wt = Read-Text $wire
+        if ($null -ne $wt -and $wt.Contains('server/discover')) { $h++ }
+        if ($null -ne $wt -and $wt.Contains('"initialize"')) { $h++ }
+        New-Result ($h -eq 4) "$h/4 (probe GATE1+GATE2; wire discover+initialize)"
+    }
+
     # SelfTest canary: proof demands a string that does not exist. Must FAIL.
     'ZZ-SelfTest-Canary' = {
         $c = Read-Text $Spec
