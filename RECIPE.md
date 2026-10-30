@@ -22,7 +22,7 @@ proofs target the canon directly.
 | ACP contract (Approve mode, protocolVersion 1) | Rule-9 gate (core-owned) | canon §3.1 contains `protocolVersion = 1` and `Approve` — 2/2 |
 | MCP-vault federation (Alfred sole writer) | ACP contract (Approve mode, protocolVersion 1) | canon §3.2 contains `Single-writer` and `system-of-record` — 2/2 |
 | MCP-vault federation client (Phase 2: expectedVersion + offline semantics) | MCP-vault federation (Alfred sole writer) | crates/gooseclaw-knowledge `cargo test` summed `N passed` = **6** (rrf_math_is_exact + fuse_prefers_docs_ranked_in_both_lists + 4 new: conflict_human_edit_wins, offline_writes_mute, create_only_null_semantics, ttl_marks_old_cache_entries_expired); source carries `CONFLICT` and `stale` semantics — 2/2 |
-| Nostr channel red-team suite (Phase 3) | ACP contract (Approve mode, protocolVersion 1) | crates/gooseclaw-channels `cargo test` summed `N passed` = **12** (4 baseline + 8 new: injection_pattern, exfil_url, trifecta, oversized, chunking x2, redteam_table, approval_defenses); `moderate()` and `chunk_text()` present in moderation.rs — 2/2 |
+| Nostr channel red-team suite (Phase 3) | ACP contract (Approve mode, protocolVersion 1) | crates/gooseclaw-channels `cargo test` summed `N passed` = **13** (4 baseline + 9 new: injection_pattern, exfil_url, allowlisted_host, trifecta, oversized, chunking x2, redteam_table, approval_defenses); `moderate()` and `chunk_text()` present in moderation.rs — 2/2 |
 | Persistence (libSQL/FTS5 + native vector) | MCP-vault federation (Alfred sole writer) | canon contains `libSQL`, `FTS5`, `native vector` — 3/3 |
 | Nostr channel layer | ACP contract (Approve mode, protocolVersion 1) | canon contains `NIP-17`, `NIP-44`, `NIP-46` — 3/3 |
 | Channel priority (RULED 2026-09-01) | Nostr channel layer | canon §7.2(b) contains `Signal`, `White Noise`, `marmot-protocol/mdk` — 3/3 |
@@ -83,9 +83,9 @@ delegates to `vendor_gate.py --self-test` instead of duplicating the matcher.
 **2026-10-29 — Phase 3 session (Nostr channel red-team suite):**
 
 5. NEW proof row added: "Nostr channel red-team suite (Phase 3)". OLD: no channel
-   red-team row existed. NEW: `cargo test -p gooseclaw-channels` summed `N passed` = **12**
-   (4 baseline + 8 new adversarial tests: injection_pattern, exfil_url, trifecta,
-   oversized, chunking x2, redteam_table, approval_defenses).
+   red-team row existed. NEW: `cargo test -p gooseclaw-channels` summed `N passed` = **13**
+   (4 baseline + 9 new adversarial tests: injection_pattern, exfil_url, allowlisted_host,
+   trifecta, oversized, chunking x2, redteam_table, approval_defenses).
    WHY: spec §8 requires the red-team/prompt-injection suite to pass — Unicode smuggling,
    crafted-DM injection, trifecta exfil, approval spoof/replay — and the suite now exists
    as executable tests, not documentation. gate.ps1 gained a matching `Test-RedteamSuite`
