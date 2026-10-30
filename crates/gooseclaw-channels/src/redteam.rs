@@ -13,7 +13,7 @@
 
 use crate::{
     ApprovalRenderer, ChannelSession, InboundAllowlist, InboundMessage, SenderKey,
-    moderate, ModerationReason, Verdict,
+    moderation::{moderate, ModerationReason, Verdict},
 };
 use gooseclaw::gate::{ActionRequest, Approval, GateError};
 use gooseclaw::Rule9Gate;
