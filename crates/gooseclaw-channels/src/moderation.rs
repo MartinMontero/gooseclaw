@@ -102,11 +102,14 @@ fn has_url(text: &str) -> Option<String> {
     // against the allowlist by suffix so subdomains of allowed hosts pass.
     for token in text.split_whitespace() {
         let t = token.trim_start_matches(|c: char| !c.is_ascii_alphanumeric());
-        if let Some(rest) = t
+        let lower = t.to_lowercase();
+        if let Some(rest) = lower
             .strip_prefix("https://")
-            .or_else(|| t.strip_prefix("http://"))
+            .or_else(|| lower.strip_prefix("http://"))
         {
-            let host = rest.split(['/', '?', '#', ':', '@']).next().unwrap_or("");
+            let authority = rest.split(['/', '?', '#']).next().unwrap_or("");
+            let host_port = authority.rsplit('@').next().unwrap_or("");
+            let host = host_port.split(':').next().unwrap_or("");
             if !host.is_empty()
                 && !URL_HOST_ALLOWLIST
                     .iter()
@@ -203,14 +206,20 @@ mod tests {
 
     #[test]
     fn non_allowlisted_url_is_an_exfil_leg() {
-        match moderate(env_of("see https://evil.example.com/exfil")) {
-            Verdict::Quarantine {
-                reason: ModerationReason::ExfilUrl(host),
-                ..
-            } => {
-                assert_eq!(host, "evil.example.com");
+        for url in [
+            "https://evil.example.com/exfil",
+            "HTTPS://evil.example.com/exfil",
+            "https://github.com@evil.example.com/exfil",
+        ] {
+            match moderate(env_of(&format!("see {url}"))) {
+                Verdict::Quarantine {
+                    reason: ModerationReason::ExfilUrl(host),
+                    ..
+                } => {
+                    assert_eq!(host, "evil.example.com");
+                }
+                other => panic!("expected exfil quarantine for {url}, got {other:?}"),
             }
-            other => panic!("expected exfil quarantine, got {other:?}"),
         }
     }
 
