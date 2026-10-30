@@ -33,6 +33,24 @@ function New-Result([bool]$pass, [string]$detail) {
     return [pscustomobject]@{ Pass = $pass; Detail = $detail }
 }
 
+function Invoke-CargoTest([string]$Package) {
+    # Windows PowerShell 5.1 turns native stderr into a fatal error under
+    # $ErrorActionPreference='Stop'. Capture output and exit code without
+    # hiding either, then restore the caller's preference in every path.
+    if ($null -eq (Get-Command cargo -ErrorAction SilentlyContinue)) {
+        return [pscustomobject]@{ Output = 'cargo not on PATH'; ExitCode = 1 }
+    }
+    $previous = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    try {
+        $out = & cargo test -p $Package 2>&1 | Out-String
+        $code = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $previous
+    }
+    return [pscustomobject]@{ Output = $out; ExitCode = $code }
+}
+
 # One check per RECIPE.md subsystem. A row with no check here FAILs -
 # the gate cannot silently pass a growing graph.
 $script:Checks = [ordered]@{
@@ -81,23 +99,24 @@ $script:Checks = [ordered]@{
     }
 
     'MCP-vault federation client (Phase 2: expectedVersion + offline semantics)' = {
-        # Phase 2 proof: cargo test -p gooseclaw-knowledge must sum to 6 passed
-        # (RRF's 2 + 4 new named federation tests). A missing toolchain or a
-        # failing suite is a FAIL, never a skip (DRIFT RULE).
-        $out = & cargo test -p gooseclaw-knowledge 2>&1 | Out-String
-        $code = $LASTEXITCODE
+        # Phase 2 proof: cargo test -p gooseclaw-knowledge must sum to 8 passed
+        # (RRF's 2 + 6 federation tests in tests/federation.rs). A missing
+        # toolchain or a failing suite is a FAIL, never a skip (DRIFT RULE).
+        $test = Invoke-CargoTest 'gooseclaw-knowledge'
+        $out = $test.Output
+        $code = $test.ExitCode
         $total = 0
         foreach ($m in [regex]::Matches($out, 'test result: ok\.\s+(\d+) passed')) {
             $total += [int]$m.Groups[1].Value
         }
-        $src = Read-Text (Join-Path $Root 'crates\gooseclaw-knowledge\src\federation.rs')
-        $names = @('conflict_human_edit_wins', 'offline_writes_mute', 'create_only_null_semantics', 'ttl_marks_old_cache_entries_expired')
+        $src = Read-Text (Join-Path $Root 'crates\gooseclaw-knowledge\tests\federation.rs')
+        $names = @('era_probe_and_legacy_handshake', 'conflict_human_edit_wins', 'offline_mute_and_stale_reads', 'reconnect_revalidates_before_write', 'ttl_serves_fresh_reads_from_cache', 'era_is_detected_as_dual_era_aware')
         $present = 0
         if ($null -ne $src) {
             foreach ($n in $names) { if ($src.Contains($n)) { $present++ } }
         }
-        $ok = ($code -eq 0) -and ($total -eq 6) -and ($present -eq 4)
-        New-Result $ok ("cargo test -p gooseclaw-knowledge exit=$code; summed passed=$total (expected 6 = RRF 2 + federation 4); named proofs present $present/4")
+        $ok = ($code -eq 0) -and ($total -eq 8) -and ($present -eq 6)
+        New-Result $ok ("cargo test -p gooseclaw-knowledge exit=$code; summed passed=$total (expected 8 = RRF 2 + federation 6); named proofs present $present/6")
     }
 
     'Nostr channel red-team suite and relay seam (Phase 3)' = {
@@ -105,8 +124,9 @@ $script:Checks = [ordered]@{
         # (4 baseline + 14 adversarial/transport tests: relay drain x2, relay chunking,
         # relay signer-offline, relay oversized). Source must carry moderate() and
         # chunk_text() — the two functions the suite leans on.
-        $out = & cargo test -p gooseclaw-channels 2>&1 | Out-String
-        $code = $LASTEXITCODE
+        $test = Invoke-CargoTest 'gooseclaw-channels'
+        $out = $test.Output
+        $code = $test.ExitCode
         $total = 0
         foreach ($m in [regex]::Matches($out, 'test result: ok\.\s+(\d+) passed')) {
             $total += [int]$m.Groups[1].Value

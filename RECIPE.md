@@ -21,7 +21,7 @@ proofs target the canon directly.
 | Rule-9 gate (core-owned) | Seven-crate design (spec) | CLAUDE.md contains `Rule 9` and `go-ahead`; canon §4.1 contains `core-owned` and `one enforcement point` — 4/4 |
 | ACP contract (Approve mode, protocolVersion 1) | Rule-9 gate (core-owned) | canon §3.1 contains `protocolVersion = 1` and `Approve` — 2/2 |
 | MCP-vault federation (Alfred sole writer) | ACP contract (Approve mode, protocolVersion 1) | canon §3.2 contains `Single-writer` and `system-of-record` — 2/2 |
-| MCP-vault federation client (Phase 2: expectedVersion + offline semantics) | MCP-vault federation (Alfred sole writer) | crates/gooseclaw-knowledge `cargo test` summed `N passed` = **6** (rrf_math_is_exact + fuse_prefers_docs_ranked_in_both_lists + 4 new: conflict_human_edit_wins, offline_writes_mute, create_only_null_semantics, ttl_marks_old_cache_entries_expired); source carries `CONFLICT` and `stale` semantics — 2/2 |
+| MCP-vault federation client (Phase 2: expectedVersion + offline semantics) | MCP-vault federation (Alfred sole writer) | crates/gooseclaw-knowledge `cargo test` summed `N passed` = **8** (RRF 2 + federation 6 in `tests/federation.rs`: era_probe_and_legacy_handshake, conflict_human_edit_wins, offline_mute_and_stale_reads, reconnect_revalidates_before_write, ttl_serves_fresh_reads_from_cache, era_is_detected_as_dual_era_aware); source carries `CONFLICT` and `stale` semantics — 2/2 |
 | Nostr channel red-team suite and relay seam (Phase 3) | ACP contract (Approve mode, protocolVersion 1) | crates/gooseclaw-channels `cargo test` summed `N passed` = **18** (4 baseline + 14 new: injection_pattern, exfil_url, allowlisted_host, trifecta, oversized, chunking x2, redteam_table, approval_defenses, relay drain x2, relay chunking, relay signer-offline, relay oversized); `moderate()` and `chunk_text()` present in moderation.rs — 2/2 |
 | Persistence (libSQL/FTS5 + native vector) | MCP-vault federation (Alfred sole writer) | canon contains `libSQL`, `FTS5`, `native vector` — 3/3 |
 | Nostr channel layer | ACP contract (Approve mode, protocolVersion 1) | canon contains `NIP-17`, `NIP-44`, `NIP-46` — 3/3 |
@@ -91,3 +91,15 @@ delegates to `vendor_gate.py --self-test` instead of duplicating the matcher.
    crafted-DM injection, trifecta exfil, approval spoof/replay — and the suite now exists
    as executable tests, not documentation. gate.ps1 gained a matching `Test-RedteamSuite`
    check block.
+
+**2026-10-30 — Gate proof correction after the desktop readout:**
+
+6. CORRECTED Phase 2 federation proof. OLD: `cargo test -p gooseclaw-knowledge` = **6**
+   (RRF 2 + federation 4), reading `src/federation.rs` and four stale names. NEW: **8**
+   (RRF 2 + federation 6), reading `tests/federation.rs` and its six actual test names:
+   era_probe_and_legacy_handshake, conflict_human_edit_wins, offline_mute_and_stale_reads,
+   reconnect_revalidates_before_write, ttl_serves_fresh_reads_from_cache,
+   era_is_detected_as_dual_era_aware.
+   WHY: the merged PR-B suite has six federation tests, not four, and the old source path
+   does not exist. gate.ps1 also gained `Invoke-CargoTest`, which captures native cargo
+   output/exit codes without Windows PowerShell 5.1 turning stderr into NativeCommandError.
