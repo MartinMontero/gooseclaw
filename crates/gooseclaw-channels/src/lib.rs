@@ -180,6 +180,7 @@ mod tests {
     }
 }
 
-/// Phase 3: deterministic moderation + the red-team adversarial suite.
+/// Phase 3: moderation, the red-team suite, and the relay transport seam.
 pub mod moderation;
+pub mod nostr_relay;
 pub mod redteam;
